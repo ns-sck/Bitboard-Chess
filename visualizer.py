@@ -3,9 +3,9 @@ import sys
 
 pygame.init()
 
-WINDOW_WIDTH = 600
-WINDOW_HEIGHT = 500
-BOARD_SIZE = 400
+WINDOW_WIDTH = 800  # HD resolution
+WINDOW_HEIGHT = 800
+BOARD_SIZE = 600  # Scaled chessboard size
 SQUARE_SIZE = BOARD_SIZE // 8
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -22,7 +22,7 @@ class Button:
     def __init__(self, x, y, width, height, text):
         self.rect = pygame.Rect(x, y, width, height)
         self.text = text
-        self.font = pygame.font.SysFont('Arial', 20)
+        self.font = pygame.font.SysFont('Arial', 24)  # Larger font for HD view
         self.is_hovered = False
 
     def draw(self):
@@ -45,13 +45,13 @@ class Button:
 class ChessboardVisualizer:
     def __init__(self):
         self.board_state = 0
-        self.font = pygame.font.SysFont('Arial', 20)
+        self.font = pygame.font.SysFont('Arial', 24)  # Larger font for HD view
         self.board_offset_x = (WINDOW_WIDTH - BOARD_SIZE) // 2
-        self.board_offset_y = 20
+        self.board_offset_y = 50
         self.reset_button = Button(
-            WINDOW_WIDTH - 120, 
-            WINDOW_HEIGHT - 60, 
-            100, 40, "Reset"
+            (WINDOW_WIDTH - 150) // 2,  # Centered Reset button
+            self.board_offset_y + BOARD_SIZE + 150,  # Added spacing below Hex/Decimal
+            150, 50, "Reset"
         )
     
     def get_square_from_pos(self, pos):
@@ -92,12 +92,12 @@ class ChessboardVisualizer:
                 
                 if rank == 7:
                     label = self.font.render(chr(file + 97), True, BLACK)
-                    screen.blit(label, (x + SQUARE_SIZE - 15, 
-                              self.board_offset_y + BOARD_SIZE - 15))
+                    screen.blit(label, (x + SQUARE_SIZE - 20, 
+                              self.board_offset_y + BOARD_SIZE + 30))  # Adjusted spacing
                 
                 if file == 0:
                     label = self.font.render(str(rank + 1), True, BLACK)
-                    screen.blit(label, (self.board_offset_x - 20, y + 5))
+                    screen.blit(label, (self.board_offset_x - 30, y + 15))
         
         pygame.draw.rect(screen, BLACK, 
                         (self.board_offset_x, self.board_offset_y, 
@@ -106,9 +106,9 @@ class ChessboardVisualizer:
         hex_text = self.font.render(f"Hex: 0x{self.board_state:016X}", True, TEXT_COLOR)
         dec_text = self.font.render(f"Dec: {self.board_state}", True, TEXT_COLOR)
         
-        text_y = self.board_offset_y + BOARD_SIZE + 20
+        text_y = self.board_offset_y + BOARD_SIZE + 60  # Moved Hex/Decimal further down
         screen.blit(hex_text, (self.board_offset_x, text_y))
-        screen.blit(dec_text, (self.board_offset_x, text_y + 30))
+        screen.blit(dec_text, (self.board_offset_x, text_y + 40))
         
         self.reset_button.draw()
         

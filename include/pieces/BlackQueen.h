@@ -1,0 +1,15 @@
+#ifndef BLACK_QUEEN_H
+#define BLACK_QUEEN_H
+
+#include "Piece.h"
+
+class BlackQueen : public Piece {
+public:
+    BlackQueen(uint64_t position);
+    
+    std::vector<Move> generate_moves(uint64_t position, uint64_t team, uint64_t enemy);
+    char get_symbol() const override;
+    int get_value() const override;
+};
+
+#endif

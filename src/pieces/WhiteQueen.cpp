@@ -1,11 +1,11 @@
-#include "BlackQueen.h"
+#include "WhiteQueen.h"
 #include "BitUtil.h"
 using namespace std;
 
-BlackQueen::BlackQueen(uint64_t position) 
-    : Piece(position, false) {}
+WhiteQueen::WhiteQueen(uint64_t position) 
+    : Piece(position, true) {}
 
-std::vector<Move> BlackQueen::generateMoves(uint64_t position, uint64_t team, uint64_t enemy) {
+std::vector<Move> WhiteQueen::generate_moves(uint64_t position, uint64_t team, uint64_t enemy) {
     std::vector<Move> moves;
     uint64_t p = position;
     while (p) {
@@ -24,16 +24,15 @@ std::vector<Move> BlackQueen::generateMoves(uint64_t position, uint64_t team, ui
         uint64_t rookAttacks = rook_moves[sq][rookOcc];
         
         uint64_t attacks = (bishopAttacks | rookAttacks) & ~team;
-        
-        this->addMoves(moves, sq, attacks);
+        this->add_moves(moves, sq, attacks);
     }
     return moves;
 }
 
-char BlackQueen::getSymbol() const {
-    return 'q';
+char WhiteQueen::get_symbol() const {
+    return 'Q';
 }
 
-int BlackQueen::getValue() const {
+int WhiteQueen::get_value() const {
     return 9;
 } 

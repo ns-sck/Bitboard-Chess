@@ -42,7 +42,7 @@ int main() {
         
         cout << (game.isWhiteToMove() ? "White" : "Black") << " to move:\n";
         string moveStr;
-        auto legalMoves = game.generateLegalMoves();
+        auto legalMoves = game.generate_legal_moves();
         for (auto move : legalMoves) {
             int from = move.getInfo() & 63;
             int to = (move.getInfo() >> 6) & 63;
@@ -56,7 +56,7 @@ int main() {
         
         try {
             Move move = parseMove(moveStr);
-            if (game.makeSimpleMove(move)) {
+            if (game.make_simple_move(move)) {
             } else {
                 cout << "Illegal move. Try again." << endl;
             }

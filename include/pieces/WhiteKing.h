@@ -10,9 +10,9 @@ private:
 public:
     WhiteKing(uint64_t position);
     
-    std::vector<Move> generateMoves(uint64_t position, uint64_t team, uint64_t enemy);
-    char getSymbol() const override;
-    int getValue() const override;
+    std::vector<Move> generate_moves(uint64_t position, uint64_t team, uint64_t enemy);
+    char get_symbol() const override;
+    int get_value() const override;
     
     bool getHasMoved() const;
     void setHasMoved(bool moved);

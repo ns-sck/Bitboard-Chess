@@ -1,11 +1,11 @@
-#include "BlackBishop.h"
+#include "WhiteBishop.h"
 #include "BitUtil.h"
 using namespace std;
 
-BlackBishop::BlackBishop(uint64_t position) 
-    : Piece(position, false) {}
+WhiteBishop::WhiteBishop(uint64_t position) 
+    : Piece(position, true) {}
 
-std::vector<Move> BlackBishop::generateMoves(uint64_t position, uint64_t team, uint64_t enemy) {
+std::vector<Move> WhiteBishop::generate_moves(uint64_t position, uint64_t team, uint64_t enemy) {
     std::vector<Move> moves;
     uint64_t p = position;
     while (p) {
@@ -17,15 +17,15 @@ std::vector<Move> BlackBishop::generateMoves(uint64_t position, uint64_t team, u
         occupancy >>= 64 - bishop_bit_counts[sq];
         occupancy = bishop_moves[sq][occupancy];
         occupancy &= ~team;
-        this->addMoves(moves, sq, occupancy);
+        this->add_moves(moves, sq, occupancy);
     }
     return moves;
 }
 
-char BlackBishop::getSymbol() const {
-    return 'b';
+char WhiteBishop::get_symbol() const {
+    return 'B';
 }
 
-int BlackBishop::getValue() const {
+int WhiteBishop::get_value() const {
     return 3;
 } 

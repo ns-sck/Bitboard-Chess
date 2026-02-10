@@ -1,0 +1,10 @@
+.vscode/
+
+obj/
+*.o
+
+*.exe
+*.dll
+
+*.out
+game

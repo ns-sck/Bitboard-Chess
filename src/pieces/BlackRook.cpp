@@ -5,7 +5,7 @@ using namespace std;
 BlackRook::BlackRook(uint64_t position) 
     : Piece(position, false) {}
 
-std::vector<Move> BlackRook::generateMoves(uint64_t position, uint64_t team, uint64_t enemy) {
+std::vector<Move> BlackRook::generate_moves(uint64_t position, uint64_t team, uint64_t enemy) {
     std::vector<Move> moves;
     uint64_t p = position;
     while (p) {
@@ -17,16 +17,16 @@ std::vector<Move> BlackRook::generateMoves(uint64_t position, uint64_t team, uin
         occupancy >>= 64 - rook_bit_counts[sq];
         uint64_t attacks = rook_moves[sq][occupancy];
         attacks &= ~team; 
-        this->addMoves(moves, sq, attacks);
+        this->add_moves(moves, sq, attacks);
     }
     return moves;
 }
 
-char BlackRook::getSymbol() const {
+char BlackRook::get_symbol() const {
     return 'r';
 }
 
-int BlackRook::getValue() const {
+int BlackRook::get_value() const {
     return 5;
 }
 

@@ -56,6 +56,8 @@ private:
     
     uint64_t white_en_passant;
     uint64_t black_en_passant;
+
+    int en_passant_target = -1;
     
     std::vector<std::string> positionHistory;
     
@@ -64,18 +66,18 @@ private:
     bool isSquareAttacked(int square, bool byWhite) const;
     bool isInCheck(bool white) const;
     void updateGameState();
-    void handleEnPassant(int from, int to);
-    uint64_t generatePins() const;
+    void handle_en_passant(int from, int to);
+    uint64_t generate_pins() const;
 public:
     Game();
     
     void resetBoard();
     
-    std::vector<Move> generateLegalMoves() const;
-    bool makeMove(Move& move);
-    bool makeSimpleMove(Move& move);
-    bool unmakeMove(const Move& move);
-    void handleCheck();
+    std::vector<Move> generate_legal_moves() const;
+    bool make_move(Move& move);
+    bool make_simple_move(Move& move);
+    bool unmake_move(const Move& move);
+    void handle_check();
     
     uint64_t getOccupiedSquares() const;
     uint64_t getwhite_pieces() const;

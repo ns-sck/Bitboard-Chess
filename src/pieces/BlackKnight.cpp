@@ -5,7 +5,7 @@ using namespace std;
 BlackKnight::BlackKnight(uint64_t position) 
     : Piece(position, false) {}
 
-std::vector<Move> BlackKnight::generateMoves(uint64_t position, uint64_t team, uint64_t enemy) {
+std::vector<Move> BlackKnight::generate_moves(uint64_t position, uint64_t team, uint64_t enemy) {
     std::vector<Move> moves;
     uint64_t p = position;
     
@@ -13,17 +13,17 @@ std::vector<Move> BlackKnight::generateMoves(uint64_t position, uint64_t team, u
         int sq = get_lsb_idx(p);
         p = clear_lsb(p);
         
-        uint64_t possibleMoves = knight_moves[sq];
-        uint64_t occupancy = possibleMoves & ~team;
-        this->addMoves(moves, sq, occupancy);
+        uint64_t possible_moves = knight_moves[sq];
+        uint64_t occupancy = possible_moves & ~team;
+        this->add_moves(moves, sq, occupancy);
     }
     return moves;
 }
 
-char BlackKnight::getSymbol() const {
+char BlackKnight::get_symbol() const {
     return 'n';
 }
 
-int BlackKnight::getValue() const {
+int BlackKnight::get_value() const {
     return 3;
 } 
