@@ -3,60 +3,43 @@
 #include "Game.h"
 #include "Move.h"
 #include "BitUtil.h"
+#include <map>
 
 using namespace std;
-
-Move parseMove(const string& moveStr) {
-    if (moveStr.length() < 4) {
-        throw invalid_argument("Invalid move format. Expected format: e2e4");
-    }
-    
-    int sourceFile = moveStr[0] - 'a';
-    int sourceRank = moveStr[1] - '1';
-    
-    int destFile = moveStr[2] - 'a';
-    int destRank = moveStr[3] - '1';
-    
-    if (sourceFile < 0 || sourceFile > 7 || sourceRank < 0 || sourceRank > 7 ||
-        destFile < 0 || destFile > 7 || destRank < 0 || destRank > 7) {
-        throw invalid_argument("Invalid square coordinates");
-    }
-    
-    int from = sourceRank * 8 + sourceFile;
-    int to = destRank * 8 + destFile;
-    
-    return Move(from | (to << 6));
-}
 
 int main() {
     init();
     Game game;
-    game.resetBoard();
+    game.reset_board();
     
     cout << "Chess Game" << endl;
     cout << "Enter moves in format 'e2e4'" << endl;
     cout << "Commands: 'quit' to exit, 'moves' to see legal moves" << endl;
     
-    while (!game.isGameOver()) {
-        game.printBoard();
+    while (!game.is_game_over()) {
+        game.print_board();
         
-        cout << (game.isWhiteToMove() ? "White" : "Black") << " to move:\n";
-        string moveStr;
-        auto legalMoves = game.generate_legal_moves();
-        for (auto move : legalMoves) {
-            int from = move.getInfo() & 63;
-            int to = (move.getInfo() >> 6) & 63;
+        cout << (game.is_white_to_move() ? "White" : "Black") << " to move:\n";
+        string move_str;
+        auto legal_moves = game.generate_legal_moves();
+        map<std::string, Move> mp;
+        for (auto move : legal_moves) {
+            int from = move.get_info() & 63;
+            int to = (move.get_info() >> 6) & 63;
             cout << square_to_algebraic[from] << ' ' << square_to_algebraic[to] << " | ";
+            string s = square_to_algebraic[from] + square_to_algebraic[to];
+            mp.insert({s, move});
         }
-        cin >> moveStr;
+        cin >> move_str;
         
-        if (moveStr == "quit") {
+        if (move_str == "quit") {
             break;
         }
         
         try {
-            Move move = parseMove(moveStr);
-            if (game.make_simple_move(move)) {
+            if (mp.count(move_str)) {
+                Move mv = game.parse_move_string(move_str);
+                game.make_move(mv);
             } else {
                 cout << "Illegal move. Try again." << endl;
             }
@@ -65,9 +48,9 @@ int main() {
         }
     }
     
-    GameState finalState = game.getState();
+    GameState finalState = game.get_state();
     if (finalState == GameState::CHECKMATE) {
-        cout << (!game.isWhiteToMove() ? "White" : "Black") << " wins by checkmate!" << endl;
+        cout << (!game.is_white_to_move() ? "White" : "Black") << " wins by checkmate!" << endl;
     } else if (finalState == GameState::STALEMATE) {
         cout << "Game drawn by stalemate!" << endl;
     }

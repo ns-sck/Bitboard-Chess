@@ -1,28 +1,28 @@
 {
-  "t_as_ks": [
+  "tasks": [
     {
-      "t_yp_e": "c_pp_bu_il_d",
-      "l_ab_el": "C/C++: g++ b_ui_ld a_ll f_il_es",
-      "c_om_ma_nd": "g++",
-      "a_rg_s": [
-        "-f_di_ag_no_st_ic_s-c_ol_or=a_lw_ay_s",
+      "type": "cppbuild",
+      "label": "C/C++: g++ build all files",
+      "command": "g++",
+      "args": [
+        "-fdiagnostics-color=always",
         "-g",
-        "*.c_pp",
+        "*.cpp",
         "-o",
-        "c_he_ss_e_ng_in_e"
+        "chessengine"
       ],
-      "o_pt_io_ns": {
-        "c_wd": "${w_or_ks_pa_ce_Fo_ld_er}"
+      "options": {
+        "cwd": "${workspaceFolder}"
       },
-      "p_ro_bl_em_Ma_tc_he_r": [
-        "$g_cc"
+      "problemMatcher": [
+        "$gcc"
       ],
-      "g_ro_up": {
-        "k_in_d": "b_ui_ld",
-        "i_sD_ef_au_lt": t_ru_e
+      "group": {
+        "kind": "build",
+        "isDefault": true
       },
-      "d_et_ai_l": "T_as_k g_en_er_at_ed f_or b_ui_ld_in_g a_ll f_il_es."
+      "detail": "Task generated for building all files."
     }
   ],
-  "v_er_si_on": "2.0.0"
+  "version": "2.0.0"
 }

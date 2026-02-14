@@ -59,39 +59,37 @@ private:
 
     int en_passant_target = -1;
     
-    std::vector<std::string> positionHistory;
-    
     float evaluation;
+
+    std::vector<Move> move_stack; 
     
-    bool isSquareAttacked(int square, bool byWhite) const;
-    bool isInCheck(bool white) const;
-    void updateGameState();
     void handle_en_passant(int from, int to);
-    uint64_t generate_pins() const;
 public:
     Game();
     
-    void resetBoard();
+    void reset_board();
     
-    std::vector<Move> generate_legal_moves() const;
+    std::vector<Move> generate_legal_moves();
     bool make_move(Move& move);
     bool make_simple_move(Move& move);
     bool unmake_move(const Move& move);
-    void handle_check();
+    bool check_move(Move& move);
+    void rollback();
     
-    uint64_t getOccupiedSquares() const;
+    Move parse_move_string(std::string move_str);
+    uint64_t get_attacked_squares(bool white) const;
+    uint64_t get_occupied_squares() const;
     uint64_t getwhite_pieces() const;
     uint64_t getblack_pieces() const;
-    uint64_t getPieceBitboard(PieceType type) const;
-    bool isGameOver() const;
-    GameState getState() const;
-    bool isWhiteToMove() const;
+    uint64_t get_piece_bitboard(PieceType type) const;
+    bool is_game_over() const;
+    GameState get_state() const;
+    bool is_white_to_move() const;
     float getEvaluation() const;
     
     std::string toFEN() const;
-    bool fromFEN(const std::string& fen);
     
-    void printBoard() const;
+    void print_board() const;
 };
 
 #endif

@@ -2,14 +2,14 @@
 #include "BitUtil.h"
 #include <string>
 
-Move::Move(int info)
+Move::Move(uint64_t info)
     : info(info) {}
 
-int Move::getInfo() {
+uint64_t Move::get_info() {
     return info;
 }
 
-void Move::setInfo(uint64_t info) {
+void Move::set_info(uint64_t info) {
     this->info = info;
 }
 // bool Move::operator==(const Move& other) const {
@@ -19,8 +19,3 @@ void Move::setInfo(uint64_t info) {
 // bool Move::operator!=(const Move& other) const {
 //     return !(*this == other);
 // }
-
-std::string Move::toUCI() const {
-    std::string result;
-    return result;
-} 
