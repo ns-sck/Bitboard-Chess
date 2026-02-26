@@ -35,6 +35,10 @@ int main() {
         if (move_str == "quit") {
             break;
         }
+
+        for (auto [x, y] : mp) {
+            std::cout << x << '\n';
+        }
         
         try {
             if (mp.count(move_str)) {

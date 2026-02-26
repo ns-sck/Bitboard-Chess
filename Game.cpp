@@ -77,13 +77,8 @@ void Game::reset_board() {
     white_occupancy = 0;
     black_occupancy = 0;
 
-    whiteKingsideCastle = true;
-    whiteQueensideCastle = true;
-    blackKingsideCastle = true;
-    blackQueensideCastle = true;
-    
-    white_en_passant = 0;
-    black_en_passant = 0;
+    en_passant_sq[0] = 0;
+    en_passant_sq[1] = 0;
     
     evaluation = 0.0f;
 }
@@ -209,7 +204,8 @@ std::vector<Move> Game::generate_legal_moves() {
     std::vector<Move> moves;
     uint64_t team = white_to_move ? white_pieces : black_pieces;
     uint64_t enemy = white_to_move ? black_pieces : white_pieces;
-    uint64_t en_passant = white_to_move ? black_en_passant : white_en_passant;
+    uint64_t en_passant = white_to_move ? en_passant_sq[1] : en_passant_sq[0];
+    std::cout << en_passant_sq[0] << ' ' << en_passant_sq[1] << '\n';
     for (int i = 0; i < 6; ++i) {
         int j = i;
         if (!white_to_move) {
@@ -224,30 +220,32 @@ std::vector<Move> Game::generate_legal_moves() {
     return moves;
 }
 
-void Game::handle_en_passant(int from, int to) {
+void Game::handle_en_passant(int from, int to, uint64_t& info) {
     // is called after pieces moved
-    // if (white_to_move) {
-    //     if (((1ull << to) & bitboard[WHITE_PAWN]) && to == from + 16) {
-    //         white_en_passant |= (1ull << from) + 8;
-    //     } 
-    //     if ((1ull << to) & black_en_passant) {
-    //         bitboard[BLACK_PAWN] &= ~(black_en_passant >> 8);
-    //     }
-    //     black_en_passant = 0;
-    // } else {
-    //     if (((1ull << to) & bitboard[BLACK_PAWN]) && to == from - 16) {
-    //         black_en_passant |= (1ull << from) - 8;
-    //     } 
-    //     if ((1ull << to) & white_en_passant) {
-    //         bitboard[WHITE_PAWN] &= ~(white_en_passant << 8);
-    //     }
-    //     white_en_passant = 0;
-    // }
+    if (white_to_move) {
+        if (((1ull << to) & bitboard[WHITE_PAWN]) && to == from + 16) {
+            en_passant_sq[WHITE] |= 1ull << (from + 8);
+        } 
+        if ((1ull << to) & en_passant_sq[BLACK]) {
+            bitboard[BLACK_PAWN] &= ~(en_passant_sq[BLACK] >> 8);
+            info |= (1ull << 21);
+            info |= (BLACK_PAWN << 16);
+        }
+        en_passant_sq[BLACK] = 0;
+    } else {
+        if (((1ull << to) & bitboard[BLACK_PAWN]) && to == from - 16) {
+            en_passant_sq[BLACK] |= 1ull << (from - 8);
+        } 
+        if ((1ull << to) & en_passant_sq[WHITE]) {
+            bitboard[WHITE_PAWN] &= ~(en_passant_sq[WHITE] << 8);
+            info |= (1ull << 21);
+            info |= (WHITE_PAWN << 16);
+        }
+        en_passant_sq[WHITE] = 0;
+    }
 }
 
-void Game::rollback() {
-    if (move_stack.empty()) return;
-
+bool Game::unmake_move() {
     Move move = move_stack.back();
     move_stack.pop_back();
 
@@ -258,7 +256,9 @@ void Game::rollback() {
     int dst = (info >> 16) & 15;
     bitboard[src] &= ~(1ull << to);
     bitboard[src] |= (1ull << from);
-    if ((info >> 20) & 1) {
+    if ((info >> 21) & 1) {
+        bitboard[dst] |= (1ull << (to + (white_to_move ? 8 : -8)));
+    } else if ((info >> 20) & 1) {
         bitboard[dst] |= (1ull << to);
     }
 
@@ -268,18 +268,27 @@ void Game::rollback() {
     white_to_move ^= 1;
 }
 
+void Game::save_state() {
+
+}
+
 bool Game::check_move(Move& move) {
     bool white = white_to_move;
+    uint64_t white_enp = en_passant_sq[WHITE];
+    uint64_t black_enp = en_passant_sq[BLACK];
     make_move(move);
     
     bool safe = 1;
     if (white) {
-        safe = static_cast<WhiteKing*>(pieces[5])->is_under_check(bitboard[5], white_pieces, black_pieces, bitboard);
+        safe = static_cast<WhiteKing*>(pieces[5])->is_under_check(
+            bitboard[5], white_pieces, black_pieces, bitboard);
     } else {
-        safe = static_cast<BlackKing*>(pieces[11])->is_under_check(bitboard[11], black_pieces, white_pieces, bitboard);
+        safe = static_cast<BlackKing*>(pieces[11])->is_under_check(
+            bitboard[11], black_pieces, white_pieces, bitboard);
     }
-    
-    rollback();
+    unmake_move();
+    en_passant_sq[WHITE] = white_enp;
+    en_passant_sq[BLACK] = black_enp;
     return safe; 
 }
 
@@ -301,46 +310,22 @@ bool Game::make_move(Move& move) {
 
     int src = (info >> 12) & 15;
     int dst = (info >> 16) & 15;
-
-    bitboard[src] &= ~(1ull << from);
-    bitboard[src] |= (1ull << to);
-
+    
     if ((info >> 20) & 1) {
         bitboard[dst] &= ~(1ull << to);
     }
 
-    handle_en_passant(from, to);
-    white_pieces = bitboard[0] | bitboard[1] | bitboard[2] | bitboard[3] | bitboard[4] | bitboard[5];
-    black_pieces = bitboard[6] | bitboard[7] | bitboard[8] | bitboard[9] | bitboard[10] | bitboard[11];
+    bitboard[src] &= ~(1ull << from);
+    bitboard[src] |= (1ull << to);
 
-    white_to_move ^= 1;
+    handle_en_passant(from, to, info);
+    
     move.set_info(info);
     move_stack.push_back(move);
 
+    white_to_move ^= 1;
+    white_pieces = bitboard[0] | bitboard[1] | bitboard[2] | bitboard[3] | bitboard[4] | bitboard[5];
+    black_pieces = bitboard[6] | bitboard[7] | bitboard[8] | bitboard[9] | bitboard[10] | bitboard[11];
+
     return true;
 }
-
-bool Game::make_simple_move(Move& move) {
-    uint64_t info = move.get_info();
-    int from = info & 63;
-    int to = (info >> 6) & 63;
-    info |= (15ull << 12);
-    info |= (15ull << 16);
-    for (int i = 0; i < 12; ++i) {
-        if (bitboard[i] & (1ull << from)) {
-            info &= ~(15ull << 12);
-            info |= (i << 12);
-        }
-        if (bitboard[i] & (1ull << to)) {
-            info &= ~(15ull << 16);
-            info |= (i << 16);
-        }
-    }
-    move.set_info(info);
-    make_move(move);
-    return true;
-}
-
-bool Game::unmake_move(const Move& move) {
-    return true;
-} 

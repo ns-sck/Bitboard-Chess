@@ -7,9 +7,14 @@
       "args": [
         "-fdiagnostics-color=always",
         "-g",
+        "-std=c++17",
+        "-Wall",
+        "-I.",
+        "-I./include/pieces",
         "*.cpp",
+        "src/pieces/*.cpp",
         "-o",
-        "chessengine"
+        "${workspaceFolder}/game.exe"
       ],
       "options": {
         "cwd": "${workspaceFolder}"

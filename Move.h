@@ -7,7 +7,7 @@
 class Move {
 private:
     // 0-5 from, 6-11 to, 12-15 from type, 16-19 to type
-    // 20-20 capture, 21-21 color, 22-23 castle, 
+    // 20-20 capture, 21-21 en_passant, 22-23 castle, 
     uint64_t info;
 public:
     Move(uint64_t info);

@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <vector>
 
+#define WHITE 0
+#define BLACK 1
+
 // File masks
 extern const uint64_t FILE_A;
 extern const uint64_t FILE_B;

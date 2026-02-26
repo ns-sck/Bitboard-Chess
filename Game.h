@@ -46,35 +46,45 @@ private:
     
     bool white_to_move;
     GameState state;
+
+    // TODO: one or two integer will hold the state of the game
+    // 0-5 from
+    // 6-11 to 
+    // 12-15 from type
+    // 16-19 to type
+    // 20-20 capture,
+    // 21-21 en passant capture,
+    // 22-27 en passant square
+    // 27-27 white king side castle
+    // 28-28 white queen side castle
+    // 29-29 black king side castle
+    // 30-30 black queen side castle
+    // 31-31 white to move
+
+    uint64_t INFO;
+
     int halfMoveClock;
     int fullMoveNumber;
     
-    bool whiteKingsideCastle;
-    bool whiteQueensideCastle;
-    bool blackKingsideCastle;
-    bool blackQueensideCastle;
-    
-    uint64_t white_en_passant;
-    uint64_t black_en_passant;
-
-    int en_passant_target = -1;
+    uint64_t en_passant_sq[2];
     
     float evaluation;
 
     std::vector<Move> move_stack; 
     
-    void handle_en_passant(int from, int to);
-public:
+    public:
     Game();
     
     void reset_board();
     
     std::vector<Move> generate_legal_moves();
     bool make_move(Move& move);
-    bool make_simple_move(Move& move);
-    bool unmake_move(const Move& move);
+    bool unmake_move();
     bool check_move(Move& move);
-    void rollback();
+    void handle_en_passant(int from, int to, uint64_t& info);
+    void unmake_en_passant(int from, int to, uint64_t& info);
+    void save_state();
+    void rollback_state();
     
     Move parse_move_string(std::string move_str);
     uint64_t get_attacked_squares(bool white) const;
