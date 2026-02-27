@@ -20,7 +20,7 @@ int main() {
         game.print_board();
         
         cout << (game.is_white_to_move() ? "White" : "Black") << " to move:\n";
-        string move_str;
+         string move_str;
         auto legal_moves = game.generate_legal_moves();
         map<std::string, Move> mp;
         for (auto move : legal_moves) {

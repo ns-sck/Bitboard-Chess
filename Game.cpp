@@ -19,60 +19,57 @@ Game::Game() {
 }
 
 void Game::reset_board() {
-    for (int i = 0; i < PIECE_TYPE_COUNT; i++) {
-        bitboard[i] = 0ULL;
-    }
+
+    bitboard[WHITE_PAWN]   = ((1ULL << 8) - 1) << 8;
+    bitboard[WHITE_KNIGHT] = (1ULL << 1) | (1ULL << 6);
+    bitboard[WHITE_BISHOP] = (1ULL << 2) | (1ULL << 5);
+    bitboard[WHITE_ROOK]   = (1ULL << 0) | (1ULL << 7);
+    bitboard[WHITE_QUEEN]  = (1ULL << 3);
+    bitboard[WHITE_KING]   = (1ULL << 4);  
     
-    white_pieces = 0ULL;
-    black_pieces = 0ULL;
+    bitboard[BLACK_PAWN]   = ((1ULL << 8) - 1) << 48;
+    bitboard[BLACK_KNIGHT] = (1ULL << 57) | (1ULL << 62);
+    bitboard[BLACK_BISHOP] = (1ULL << 58) | (1ULL << 61);
+    bitboard[BLACK_ROOK]   = (1ULL << 56) | (1ULL << 63);
+    bitboard[BLACK_QUEEN]  = (1ULL << 59);
+    bitboard[BLACK_KING]   = (1ULL << 60);
     
-    bitboard[WHITE_ROOK] = (1ULL << 0) | (1ULL << 7);     // a1, h1
-    bitboard[WHITE_KNIGHT] = (1ULL << 1) | (1ULL << 6);   // b1, g1
-    bitboard[WHITE_BISHOP] = (1ULL << 2) | (1ULL << 5);   // c1, f1
-    bitboard[WHITE_QUEEN] = (1ULL << 3);                  // d1
-    bitboard[WHITE_KING] = (1ULL << 4);                   // e1
+    white_pieces = bitboard[WHITE_PAWN]   | bitboard[WHITE_KNIGHT] | 
+                   bitboard[WHITE_BISHOP] | bitboard[WHITE_ROOK]   | 
+                   bitboard[WHITE_QUEEN]  | bitboard[WHITE_KING];
     
-    bitboard[WHITE_PAWN] = 0ULL;
-    for (int i = 8; i < 16; i++) {
-        bitboard[WHITE_PAWN] |= (1ULL << i);
-    }
+    black_pieces = bitboard[BLACK_PAWN]   | bitboard[BLACK_KNIGHT] | 
+                   bitboard[BLACK_BISHOP] | bitboard[BLACK_ROOK]   | 
+                   bitboard[BLACK_QUEEN]  | bitboard[BLACK_KING];
     
-    bitboard[BLACK_ROOK] = (1ULL << 56) | (1ULL << 63);   // a8, h8
-    bitboard[BLACK_KNIGHT] = (1ULL << 57) | (1ULL << 62); // b8, g8
-    bitboard[BLACK_BISHOP] = (1ULL << 58) | (1ULL << 61); // c8, f8
-    bitboard[BLACK_QUEEN] = (1ULL << 59);                 // d8
-    bitboard[BLACK_KING] = (1ULL << 60);                  // e8
-    
-    bitboard[BLACK_PAWN] = 0ULL;
-    for (int i = 48; i < 56; i++) {
-        bitboard[BLACK_PAWN] |= (1ULL << i);
-    }
-    
-    white_pieces = bitboard[WHITE_PAWN] | bitboard[WHITE_KNIGHT] | 
-                  bitboard[WHITE_BISHOP] | bitboard[WHITE_ROOK] | 
-                  bitboard[WHITE_QUEEN] | bitboard[WHITE_KING];
-    
-    black_pieces = bitboard[BLACK_PAWN] | bitboard[BLACK_KNIGHT] | 
-                  bitboard[BLACK_BISHOP] | bitboard[BLACK_ROOK] | 
-                  bitboard[BLACK_QUEEN] | bitboard[BLACK_KING];
-    
-    pieces[WHITE_PAWN]      =new WhitePawn(bitboard[WHITE_PAWN]);
-    pieces[WHITE_BISHOP]    =new WhiteBishop(bitboard[WHITE_BISHOP]);
-    pieces[WHITE_KNIGHT]    =new WhiteKnight(bitboard[WHITE_KNIGHT]);
-    pieces[WHITE_ROOK]      =new WhiteRook(bitboard[WHITE_ROOK]);
-    pieces[WHITE_QUEEN]     =new WhiteQueen(bitboard[WHITE_QUEEN]);
-    pieces[WHITE_KING]      =new WhiteKing(bitboard[WHITE_KING]);
-    pieces[BLACK_PAWN]      =new BlackPawn(bitboard[BLACK_PAWN]);
-    pieces[BLACK_BISHOP]    =new BlackBishop(bitboard[BLACK_BISHOP]);
-    pieces[BLACK_KNIGHT]    =new BlackKnight(bitboard[BLACK_KNIGHT]);
-    pieces[BLACK_ROOK]      =new BlackRook(bitboard[BLACK_ROOK]);
-    pieces[BLACK_QUEEN]     =new BlackQueen(bitboard[BLACK_QUEEN]);
-    pieces[BLACK_KING]      =new BlackKing(bitboard[BLACK_KING]);
+    pieces[WHITE_PAWN]   = new WhitePawn(bitboard[WHITE_PAWN]);
+    pieces[WHITE_BISHOP] = new WhiteBishop(bitboard[WHITE_BISHOP]);
+    pieces[WHITE_KNIGHT] = new WhiteKnight(bitboard[WHITE_KNIGHT]);
+    pieces[WHITE_ROOK]   = new WhiteRook(bitboard[WHITE_ROOK]);
+    pieces[WHITE_QUEEN]  = new WhiteQueen(bitboard[WHITE_QUEEN]);
+    pieces[WHITE_KING]   = new WhiteKing(bitboard[WHITE_KING]);
+    pieces[BLACK_PAWN]   = new BlackPawn(bitboard[BLACK_PAWN]);
+    pieces[BLACK_BISHOP] = new BlackBishop(bitboard[BLACK_BISHOP]);
+    pieces[BLACK_KNIGHT] = new BlackKnight(bitboard[BLACK_KNIGHT]);
+    pieces[BLACK_ROOK]   = new BlackRook(bitboard[BLACK_ROOK]);
+    pieces[BLACK_QUEEN]  = new BlackQueen(bitboard[BLACK_QUEEN]);
+    pieces[BLACK_KING]   = new BlackKing(bitboard[BLACK_KING]);
+
+    for (int i = 1; i <= 12; ++i) {
+        uint64_t p = bitboard[i];
+        while (p) {
+            int sq = get_lsb_idx(p);
+            p = clear_lsb(p); 
+            types[sq] = i;
+        }
+    } 
 
     white_to_move = true;
     state = GameState::ACTIVE;
-    halfMoveClock = 0;
-    fullMoveNumber = 1;
+    half_move_clock = 0;
+    full_move_number = 1;
+
+    STATE = 0;
     
     white_occupancy = 0;
     black_occupancy = 0;
@@ -81,22 +78,6 @@ void Game::reset_board() {
     en_passant_sq[1] = 0;
     
     evaluation = 0.0f;
-}
-
-uint64_t Game::get_occupied_squares() const {
-    return white_pieces | black_pieces;
-}
-
-uint64_t Game::getwhite_pieces() const {
-    return white_pieces;
-}
-
-uint64_t Game::getblack_pieces() const {
-    return black_pieces;
-}
-
-uint64_t Game::get_piece_bitboard(PieceType type) const {
-    return bitboard[type];
 }
 
 bool Game::is_game_over() const {
@@ -111,14 +92,6 @@ bool Game::is_white_to_move() const {
     return white_to_move;
 }
 
-float Game::getEvaluation() const {
-    return evaluation;
-}
-
-std::string Game::toFEN() const {
-    return "";
-}
-
 void Game::print_board() const {
     std::cout << "\n  +---+---+---+---+---+---+---+---+\n";
     
@@ -127,7 +100,7 @@ void Game::print_board() const {
         board[i] = ' ';
     }
     
-    for (int pieceType = 0; pieceType < PIECE_TYPE_COUNT; pieceType++) {
+    for (int pieceType = 0; pieceType < TYPE_COUNT; pieceType++) {
         uint64_t bb = bitboard[pieceType];
         std::string symbol = pieceSymbols[pieceType];
         
@@ -163,55 +136,33 @@ Move Game::parse_move_string(std::string move_str) {
     int to_rank = move_str[3] - '1';
     int to = to_rank * 8 + to_file;
 
-    int src_type = 12;
-    int dst_type = 12;
-
-    for (int i = 0; i < 12; i++) {
-        if (bitboard[i] & (1ull << from)) {
-            src_type = i;
-        }
-        if (bitboard[i] & (1ull << to)) {
-            dst_type = i;
-        }
-    }
-
     uint64_t info = 0;
     info |= (from & 63);
     info |= (to & 63) << 6;
-    info |= (src_type & 15) << 12;
-    info |= (dst_type & 15) << 16;
 
     return Move(static_cast<uint64_t>(info));
 }
 
-uint64_t Game::get_attacked_squares(bool white) const {
-    uint64_t attack = 0;
-    for (int i = 0; i < 6; ++i) {
-        int j = i;
-        uint64_t team = white_pieces;
-        uint64_t enemy = black_pieces;
-        if (!white) {
-            j += 6;
-            std::swap(enemy, team);
-        }
-        uint64_t x = pieces[j]->get_attacked_pos(bitboard[j], team, enemy);
-        attack |= x;
-    }
-    return attack;
+void Game::save_state() {
+    PREV = STATE;
+}
+
+void Game::rollback_state() {
+    STATE = PREV;
 }
 
 std::vector<Move> Game::generate_legal_moves() {
     std::vector<Move> moves;
     uint64_t team = white_to_move ? white_pieces : black_pieces;
     uint64_t enemy = white_to_move ? black_pieces : white_pieces;
-    uint64_t en_passant = white_to_move ? en_passant_sq[1] : en_passant_sq[0];
-    std::cout << en_passant_sq[0] << ' ' << en_passant_sq[1] << '\n';
-    for (int i = 0; i < 6; ++i) {
+    uint64_t en_passant = 1ull << get_mask(STATE, 22, 27);
+    std::cout << en_passant << '\n';
+    for (int i = 1; i <= 6; ++i) {
         int j = i;
         if (!white_to_move) {
             j += 6;
         }
-        for (auto& m : pieces[j]->generate_moves(bitboard[j], team, enemy | (i == 0 ? en_passant : 0))) {
+        for (auto& m : pieces[j]->generate_moves(bitboard[j], team, enemy | (i == 1 ? en_passant : 0))) {
             if (check_move(m)) {
                 moves.push_back(m);
             }
@@ -222,54 +173,87 @@ std::vector<Move> Game::generate_legal_moves() {
 
 void Game::handle_en_passant(int from, int to, uint64_t& info) {
     // is called after pieces moved
+    int en_passant_square = get_mask(PREV, 22, 27);
     if (white_to_move) {
         if (((1ull << to) & bitboard[WHITE_PAWN]) && to == from + 16) {
-            en_passant_sq[WHITE] |= 1ull << (from + 8);
+            embed(STATE, 22, 27, from + 8);
         } 
-        if ((1ull << to) & en_passant_sq[BLACK]) {
-            bitboard[BLACK_PAWN] &= ~(en_passant_sq[BLACK] >> 8);
-            info |= (1ull << 21);
-            info |= (BLACK_PAWN << 16);
+        if (to == en_passant_square) {
+            bitboard[BLACK_PAWN] &= ~(1ull << (en_passant_square - 8));
+            embed(STATE, 21, 21, 1);
+            embed(STATE, 16, 19, BLACK_PAWN);
         }
-        en_passant_sq[BLACK] = 0;
     } else {
         if (((1ull << to) & bitboard[BLACK_PAWN]) && to == from - 16) {
-            en_passant_sq[BLACK] |= 1ull << (from - 8);
+            embed(STATE, 22, 27, from - 8);
         } 
-        if ((1ull << to) & en_passant_sq[WHITE]) {
-            bitboard[WHITE_PAWN] &= ~(en_passant_sq[WHITE] << 8);
-            info |= (1ull << 21);
-            info |= (WHITE_PAWN << 16);
+        if (to == en_passant_square) {
+            bitboard[WHITE_PAWN] &= ~(1ull << (en_passant_square + 8));
+            embed(STATE, 21, 21, 1);
+            embed(STATE, 16, 19, WHITE_PAWN);
         }
-        en_passant_sq[WHITE] = 0;
     }
 }
 
 bool Game::unmake_move() {
-    Move move = move_stack.back();
-    move_stack.pop_back();
+    int from = STATE & 63;
+    int to = (STATE >> 6) & 63;
+    int src = (STATE >> 12) & 15;
+    int dst = (STATE >> 16) & 15;
 
-    uint64_t info = move.get_info();
-    int from = info & 63;
-    int to = (info >> 6) & 63;
-    int src = (info >> 12) & 15;
-    int dst = (info >> 16) & 15;
     bitboard[src] &= ~(1ull << to);
     bitboard[src] |= (1ull << from);
-    if ((info >> 21) & 1) {
+
+    if ((STATE >> 21) & 1) {
         bitboard[dst] |= (1ull << (to + (white_to_move ? 8 : -8)));
-    } else if ((info >> 20) & 1) {
+    } else if ((STATE >> 20) & 1) {
         bitboard[dst] |= (1ull << to);
     }
 
-    white_pieces = bitboard[0] | bitboard[1] | bitboard[2] | bitboard[3] | bitboard[4] | bitboard[5];
-    black_pieces = bitboard[6] | bitboard[7] | bitboard[8] | bitboard[9] | bitboard[10] | bitboard[11];
+    rollback_state();
+
+    white_pieces = bitboard[6] | bitboard[1] | bitboard[2] | bitboard[3] | bitboard[4] | bitboard[5];
+    black_pieces = bitboard[12] | bitboard[7] | bitboard[8] | bitboard[9] | bitboard[10] | bitboard[11];
 
     white_to_move ^= 1;
 }
 
-void Game::save_state() {
+bool Game::make_move(Move& move) {
+    save_state();
+    uint64_t info = move.get_info();
+    int from = info & 63;
+    int to = (info >> 6) & 63;
 
+    STATE = info;
+
+    for (int i = 1; i < TYPE_COUNT; ++i) {
+        if ((bitboard[i] >> from) & 1) {
+            embed(STATE, 12, 15, i);
+        }
+        if ((bitboard[i] >> to) & 1) {
+            embed(STATE, 16, 19, i);
+            embed(STATE, 20, 20, 1);
+        }
+    }
+    
+    int src = get_mask(STATE, 12, 15);
+    int dst = get_mask(STATE, 16, 19);
+    
+    if (get_mask(STATE, 20, 20)) {
+        bitboard[dst] &= ~(1ull << to);
+    }
+
+    bitboard[src] &= ~(1ull << from);
+    bitboard[src] |= (1ull << to);
+
+    handle_en_passant(from, to, info);
+    move_stack.push_back(move);
+
+    white_to_move ^= 1;
+    white_pieces = bitboard[6] | bitboard[1] | bitboard[2] | bitboard[3] | bitboard[4] | bitboard[5];
+    black_pieces = bitboard[12] | bitboard[7] | bitboard[8] | bitboard[9] | bitboard[10] | bitboard[11];
+
+    return true;
 }
 
 bool Game::check_move(Move& move) {
@@ -280,52 +264,14 @@ bool Game::check_move(Move& move) {
     
     bool safe = 1;
     if (white) {
-        safe = static_cast<WhiteKing*>(pieces[5])->is_under_check(
-            bitboard[5], white_pieces, black_pieces, bitboard);
+        safe = static_cast<WhiteKing*>(pieces[WHITE_KING])->is_under_check(
+            bitboard[WHITE_KING], white_pieces, black_pieces, bitboard);
     } else {
-        safe = static_cast<BlackKing*>(pieces[11])->is_under_check(
-            bitboard[11], black_pieces, white_pieces, bitboard);
+        safe = static_cast<BlackKing*>(pieces[BLACK_KING])->is_under_check(
+            bitboard[BLACK_KING], black_pieces, white_pieces, bitboard);
     }
     unmake_move();
     en_passant_sq[WHITE] = white_enp;
     en_passant_sq[BLACK] = black_enp;
     return safe; 
-}
-
-bool Game::make_move(Move& move) {
-    // 0-5 from, 6-11 to, 12-15 from type, 16-19 to type
-    uint64_t info = move.get_info();
-    int from = info & 63;
-    int to = (info >> 6) & 63;
-
-    for (int i = 0; i < 12; ++i) {
-        if ((bitboard[i] >> from) & 1) {
-            info |= (i << 12);
-        }
-        if ((bitboard[i] >> to) & 1) {
-            info |= (i << 16);
-            info |= (1ull << 20);
-        }
-    }
-
-    int src = (info >> 12) & 15;
-    int dst = (info >> 16) & 15;
-    
-    if ((info >> 20) & 1) {
-        bitboard[dst] &= ~(1ull << to);
-    }
-
-    bitboard[src] &= ~(1ull << from);
-    bitboard[src] |= (1ull << to);
-
-    handle_en_passant(from, to, info);
-    
-    move.set_info(info);
-    move_stack.push_back(move);
-
-    white_to_move ^= 1;
-    white_pieces = bitboard[0] | bitboard[1] | bitboard[2] | bitboard[3] | bitboard[4] | bitboard[5];
-    black_pieces = bitboard[6] | bitboard[7] | bitboard[8] | bitboard[9] | bitboard[10] | bitboard[11];
-
-    return true;
 }

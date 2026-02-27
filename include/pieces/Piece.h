@@ -15,7 +15,6 @@ public:
     virtual ~Piece() = default;
 
     virtual std::vector<Move> generate_moves(uint64_t position, uint64_t team, uint64_t enemy) = 0;
-    virtual uint64_t get_attacked_pos(uint64_t position, uint64_t team, uint64_t enemy) = 0;
     virtual char get_symbol() const = 0;
     virtual int get_value() const = 0;
 

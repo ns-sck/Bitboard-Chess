@@ -51,7 +51,7 @@ uint64_t clear_lsb(uint64_t bitboard) {
     return bitboard & (bitboard - 1);
 }
 
-int popCount(uint64_t bitboard) {
+int pop_count(uint64_t bitboard) {
     return __builtin_popcountll(bitboard);
 }
 
@@ -284,9 +284,9 @@ void init_king_moves() {
     }
 }
 
-uint64_t slide_rook(int sq, uint64_t block) {
+uint64_t slide_rook(int sq, uint64_t block, bool is_mask) {
     uint64_t occupancy = 0;
-    int e = block == 0;
+    int e = is_mask ? 1 : 0;
     int r = sq / 8, c = sq % 8;
     for (int i = r + 1; i < 8 - e; ++i) {
         occupancy |= 1ull << (i * 8 + c);
@@ -304,15 +304,15 @@ uint64_t slide_rook(int sq, uint64_t block) {
         occupancy |= 1ull << (r * 8 + j);
         if (block & (1ull << (r * 8 + j))) break;
     }
-    if (block == 0) {
+    if (is_mask) {
         rook_masks[sq] = occupancy;
     }
     return occupancy;
 }
 
-uint64_t slide_bishop(int sq, uint64_t block) {
+uint64_t slide_bishop(int sq, uint64_t block, bool is_mask) {
     uint64_t occupancy = 0;
-    int e = block == 0;
+    int e = is_mask ? 1 : 0;
     int r = sq / 8, c = sq % 8;
     for (int i = r + 1, j = c + 1; i < 8 - e && j < 8 - e; ++i, ++j) {
         occupancy |= 1ull << (i * 8 + j);
@@ -330,7 +330,7 @@ uint64_t slide_bishop(int sq, uint64_t block) {
         occupancy |= 1ull << (i * 8 + j);
         if (block & (1ull << (i * 8 + j))) break;
     }
-    if (block == 0) {
+    if (is_mask) {
         bishop_masks[sq] = occupancy;
     }
     return occupancy;
@@ -341,7 +341,7 @@ void init_sliders_moves() {
         // rook
         {   
             int count = rook_bit_counts[i];
-            uint64_t occupancy = slide_rook(i, 0);
+            uint64_t occupancy = slide_rook(i, 0, true);
             
             for (int j = 0; j < (1 << count); ++j) {
                 uint64_t dummy = occupancy;
@@ -353,13 +353,13 @@ void init_sliders_moves() {
                     dummy = clear_lsb(dummy);
                 }
                 int idx = (ans * rook_magic[i]) >> (64 - rook_bit_counts[i]);
-                rook_moves[i][idx] = slide_rook(i, ans);
+                rook_moves[i][idx] = slide_rook(i, ans, false);
             }
         }
         // bishop
         {
             int count = bishop_bit_counts[i];
-            uint64_t occupancy = slide_bishop(i, 0);
+            uint64_t occupancy = slide_bishop(i, 0, true);
             for (int j = 0; j < (1 << count); ++j) {
                 uint64_t dummy = occupancy;
                 uint64_t ans = 0;
@@ -370,7 +370,7 @@ void init_sliders_moves() {
                     dummy = clear_lsb(dummy);
                 }
                 int idx = (ans * bishop_magic[i]) >> (64 - bishop_bit_counts[i]);
-                bishop_moves[i][idx] = slide_bishop(i, ans);
+                bishop_moves[i][idx] = slide_bishop(i, ans, false);
             }
         }
     }

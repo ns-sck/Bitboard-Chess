@@ -20,21 +20,6 @@ std::vector<Move> WhiteKing::generate_moves(uint64_t position, uint64_t team, ui
     return moves;
 }
 
-uint64_t WhiteKing::get_attacked_pos(uint64_t position, uint64_t team, uint64_t enemy) {
-    uint64_t attack = 0;
-    uint64_t p = position;
-    
-    while (p > 0) {
-        int sq = get_lsb_idx(p);
-        p = clear_lsb(p);
-        
-        uint64_t possible_moves = king_moves[sq];
-        uint64_t occupancy = possible_moves & ~team;
-        attack |= occupancy;
-    }
-    return attack;
-}
-
 bool WhiteKing::is_under_check(uint64_t position, uint64_t team, uint64_t enemy, uint64_t bitboard[]) {
     uint64_t p = position;
     int sq = get_lsb_idx(p);
@@ -56,12 +41,12 @@ bool WhiteKing::is_under_check(uint64_t position, uint64_t team, uint64_t enemy,
 
     uint64_t king_attacks = king_moves[sq];
     
-    if (bitboard[6] & pawn_attacks) return 0;
-    if (bitboard[7] & knight_attacks) return 0;
-    if (bitboard[8] & bishop_attacks) return 0;
-    if (bitboard[9] & rook_attacks) return 0;
-    if (bitboard[10] & (bishop_attacks | rook_attacks)) return 0;
-    if (bitboard[11] & king_attacks) return 0;
+    if (bitboard[7] & pawn_attacks) return 0;
+    if (bitboard[8] & knight_attacks) return 0;
+    if (bitboard[9] & bishop_attacks) return 0;
+    if (bitboard[10] & rook_attacks) return 0;
+    if (bitboard[11] & (bishop_attacks | rook_attacks)) return 0;
+    if (bitboard[12] & king_attacks) return 0;
     return 1;
 }
 

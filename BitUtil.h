@@ -31,7 +31,16 @@ int get_lsb_idx(uint64_t bitboard);
 int get_msb(uint64_t bitboard);
 uint64_t get_lsb(uint64_t bitboard);
 uint64_t clear_lsb(uint64_t bitboard);
-int popCount(uint64_t bitboard);
+int pop_count(uint64_t bitboard);
+
+inline void embed(uint64_t& x, int l, int r, int y) {
+    x &= ~(((1ull << (r - l + 1)) - 1) << l);
+    x |= (y << l);
+}
+
+inline int get_mask(uint64_t& x, int l, int r) {
+    return (x >> l) & ((1ull << (r - l + 1)) - 1);
+}
 
 extern uint64_t knight_moves[64];
 extern uint64_t king_moves[64];

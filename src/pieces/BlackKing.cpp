@@ -20,21 +20,6 @@ vector<Move> BlackKing::generate_moves(uint64_t position, uint64_t team, uint64_
     return moves;
 }
 
-uint64_t BlackKing::get_attacked_pos(uint64_t position, uint64_t team, uint64_t enemy) {
-    uint64_t attack = 0;
-    uint64_t p = position;
-    
-    while (p > 0) {
-        int sq = get_lsb_idx(p);
-        p = clear_lsb(p);
-        
-        uint64_t possible_moves = king_moves[sq];
-        uint64_t occupancy = possible_moves & ~team;
-        attack |= occupancy;
-    }
-    return attack;
-}
-
 bool BlackKing::is_under_check(uint64_t position, uint64_t team, uint64_t enemy, uint64_t bitboard[]) {
     uint64_t p = position;
     int sq = get_lsb_idx(p);
@@ -56,12 +41,12 @@ bool BlackKing::is_under_check(uint64_t position, uint64_t team, uint64_t enemy,
 
     uint64_t king_attacks = king_moves[sq];
     
-    if (bitboard[0] & pawn_attacks) return 0;
-    if (bitboard[1] & knight_attacks) return 0;
-    if (bitboard[2] & bishop_attacks) return 0;
-    if (bitboard[3] & rook_attacks) return 0;
-    if (bitboard[4] & (bishop_attacks | rook_attacks)) return 0;
-    if (bitboard[5] & king_attacks) return 0;
+    if (bitboard[1] & pawn_attacks) return 0;
+    if (bitboard[2] & knight_attacks) return 0;
+    if (bitboard[3] & bishop_attacks) return 0;
+    if (bitboard[4] & rook_attacks) return 0;
+    if (bitboard[5] & (bishop_attacks | rook_attacks)) return 0;
+    if (bitboard[6] & king_attacks) return 0;
     return 1;
 }
 
