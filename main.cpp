@@ -19,27 +19,23 @@ int main() {
     while (!game.is_game_over()) {
         game.print_board();
         
-        cout << (game.is_white_to_move() ? "White" : "Black") << " to move:\n";
-         string move_str;
+        string move_str;
         auto legal_moves = game.generate_legal_moves();
         map<std::string, Move> mp;
         for (auto move : legal_moves) {
-            int from = move.get_info() & 63;
-            int to = (move.get_info() >> 6) & 63;
+            int from = get_mask(move.get_info(), 7, 12);
+            int to = get_mask(move.get_info(), 13, 18);
             cout << square_to_algebraic[from] << ' ' << square_to_algebraic[to] << " | ";
             string s = square_to_algebraic[from] + square_to_algebraic[to];
             mp.insert({s, move});
         }
+        cout << endl;
         cin >> move_str;
-        
+   
         if (move_str == "quit") {
             break;
         }
 
-        for (auto [x, y] : mp) {
-            std::cout << x << '\n';
-        }
-        
         try {
             if (mp.count(move_str)) {
                 Move mv = game.parse_move_string(move_str);

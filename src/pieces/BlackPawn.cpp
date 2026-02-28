@@ -12,7 +12,9 @@ std::vector<Move> BlackPawn::generate_moves(uint64_t position, uint64_t team, ui
     while (p > 0) {
         int sq = get_lsb_idx(p);
         p = clear_lsb(p);
-        uint64_t occupancy = ((black_pawn_moves[sq] & ~enemy) | (black_pawn_captures[sq] & enemy)) & ~team;
+        uint64_t slide = black_pawn_moves[sq] & ~enemy;
+        if (sq >= 8 && (enemy & (1ull << (sq - 8)))) slide = 0;
+        uint64_t occupancy = (slide | (black_pawn_captures[sq] & enemy)) & ~team;
         this->add_moves(moves, sq, occupancy, enemy);
     }
     

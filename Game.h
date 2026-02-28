@@ -7,6 +7,8 @@
 #include "Move.h"
 #include "Piece.h"
 
+typedef uint16_t State;
+
 enum class GameState {
     ACTIVE,
     CHECK,
@@ -19,61 +21,50 @@ enum class GameState {
 
 enum PieceType {
     EMPTY        = 0,
-    WHITE_PAWN   = 1,
-    WHITE_KNIGHT = 2,
-    WHITE_BISHOP = 3,
-    WHITE_ROOK   = 4,
-    WHITE_QUEEN  = 5,
-    WHITE_KING   = 6,
-    BLACK_PAWN   = 7,
-    BLACK_KNIGHT = 8,
-    BLACK_BISHOP = 9,
-    BLACK_ROOK   = 10,
-    BLACK_QUEEN  = 11,
-    BLACK_KING   = 12,
+    WP   = 1,
+    WN = 2,
+    WB = 3,
+    WR   = 4,
+    WQ  = 5,
+    WK   = 6,
+    BP   = 7,
+    BN = 8,
+    BB = 9,
+    BR   = 10,
+    BQ  = 11,
+    BK   = 12,
     TYPE_COUNT   = 13
 };
 
 class Game {
 private:
-    uint64_t bitboard[TYPE_COUNT];
     Piece* pieces[TYPE_COUNT];
-    uint64_t white_pieces;
-    uint64_t black_pieces;
-    uint64_t white_occupancy;
-    uint64_t black_occupancy;
+    uint64_t bitboard[TYPE_COUNT];
+    uint16_t types[64];
+    uint64_t white_occ;
+    uint64_t black_occ;
     
     std::string pieceSymbols[TYPE_COUNT] = {" ", "♟", "♞", "♝", "♜", "♛", "♚", "♙", "♘", "♗", "♖", "♕", "♔"};
     
     bool white_to_move;
-    GameState state;
+    GameState game_state;
 
-    // TODO: one or two integer will hold the state of the game
-    // 0-5 from
-    // 6-11 to 
-    // 12-15 from type
-    // 16-19 to type
-    // 20-20 capture,
-    // 21-21 en passant capture,
-    // 22-27 en passant square
-    // 28-28 white king side castle
-    // 29-29 white queen side castle
-    // 30-30 black king side castle
-    // 31-31 black queen side castle
-    // 32-32 white to move
-
-    uint64_t STATE, PREV;
-    uint16_t types[64];
-
-    int half_move_clock;
+    // w_castle_k   = 0 - 0
+    // w_castle_q   = 1 - 1
+    // b_castle_k   = 2 - 2
+    // b_castle_q   = 3 - 3
+    // move_cntr    = 4 - 9
+    // en_pssnt_sqr = 10 - 15 
+    State state;
+    State new_state;
+    
     int full_move_number;
     
-    uint64_t en_passant_sq[2];
-    
+    std::vector<Move> move_stack; 
+    std::vector<State> state_stack;
+
     float evaluation;
 
-    std::vector<Move> move_stack; 
-    
     public:
     Game();
     
@@ -84,8 +75,8 @@ private:
     bool unmake_move();
     bool check_move(Move& move);
     void handle_en_passant(int from, int to, uint64_t& info);
-    void save_state();
-    void rollback_state();
+    void handle_castling(int from, int to, int src, uint64_t&info);
+    void generate_castlings(std::vector<Move>& moves);
     
     Move parse_move_string(std::string move_str);
     bool is_game_over() const;

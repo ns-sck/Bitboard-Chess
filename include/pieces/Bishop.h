@@ -1,11 +1,11 @@
-#ifndef BLACK_QUEEN_H
-#define BLACK_QUEEN_H
+#ifndef BISHOP_H
+#define BISHOP_H
 
 #include "Piece.h"
 
-class BlackQueen : public Piece {
+class Bishop : public Piece {
 public:
-    BlackQueen(uint64_t position);
+    Bishop(uint64_t position);
     
     std::vector<Move> generate_moves(uint64_t position, uint64_t team, uint64_t enemy);
     char get_symbol() const override;

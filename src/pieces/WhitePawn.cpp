@@ -12,7 +12,9 @@ std::vector<Move> WhitePawn::generate_moves(uint64_t position, uint64_t team, ui
     while (p > 0) {
         int sq = get_lsb_idx(p);
         p = clear_lsb(p);
-        uint64_t occupancy = ((white_pawn_moves[sq] & ~enemy) | (white_pawn_captures[sq] & (enemy))) & ~team;
+        uint64_t slide = white_pawn_moves[sq] & ~enemy;
+        if (sq <= 55 && (enemy & (1ull << (sq + 8)))) slide = 0;
+        uint64_t occupancy = (slide | (white_pawn_captures[sq] & (enemy))) & ~team;
         this->add_moves(moves, sq, occupancy, enemy);
     }
     

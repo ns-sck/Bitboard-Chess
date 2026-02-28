@@ -4,10 +4,20 @@
 #include <cstdint>
 #include <string>
 
+typedef uint64_t Info;
+
 class Move {
 private:
-    // 0-5 from, 6-11 to, 12-15 from type, 16-19 to type
-    // 20-20 capture, 21-21 en_passant, 22-23 castle, 
+    // promoted type = 0 - 3
+    // check         = 4 - 4
+    // capture       = 5 - 5
+    // en_passant    = 6 - 6
+    // from square   = 7 - 12
+    // to square     = 13 - 18
+    // from type     = 19 - 22
+    // to type       = 23 - 26
+    // kingsd castle = 27 - 27
+    // quensd castle = 28 - 28
     uint64_t info;
 public:
     Move(uint64_t info);

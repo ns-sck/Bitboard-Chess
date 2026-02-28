@@ -1,5 +1,3 @@
-unmake_move enpassant logic
-pieces on pawn's slide of two length
-castle
-info masking
 promote
+move counter
+3 move-rule

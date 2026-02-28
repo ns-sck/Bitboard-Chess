@@ -1,11 +1,11 @@
-#include "WhiteKnight.h"
+#include "Knight.h"
 #include "BitUtil.h"
 using namespace std;
 
-WhiteKnight::WhiteKnight(uint64_t position) 
+Knight::Knight(uint64_t position) 
     : Piece(position, true) {}
 
-std::vector<Move> WhiteKnight::generate_moves(uint64_t position, uint64_t team, uint64_t enemy) {
+std::vector<Move> Knight::generate_moves(uint64_t position, uint64_t team, uint64_t enemy) {
     std::vector<Move> moves;
     uint64_t p = position;
     
@@ -20,10 +20,10 @@ std::vector<Move> WhiteKnight::generate_moves(uint64_t position, uint64_t team, 
     return moves;
 }
 
-char WhiteKnight::get_symbol() const {
+char Knight::get_symbol() const {
     return 'N';
 }
 
-int WhiteKnight::get_value() const {
+int Knight::get_value() const {
     return 3;
 } 

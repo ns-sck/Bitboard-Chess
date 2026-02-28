@@ -3,7 +3,7 @@
 using namespace std;
 
 BlackKing::BlackKing(uint64_t position) 
-    : Piece(position, false), hasMoved(false) {}
+    : Piece(position, false), has_moved(false) {}
 
 vector<Move> BlackKing::generate_moves(uint64_t position, uint64_t team, uint64_t enemy) {
     vector<Move> moves;
@@ -20,25 +20,23 @@ vector<Move> BlackKing::generate_moves(uint64_t position, uint64_t team, uint64_
     return moves;
 }
 
-bool BlackKing::is_under_check(uint64_t position, uint64_t team, uint64_t enemy, uint64_t bitboard[]) {
+bool BlackKing::is_king_safe(uint64_t position, uint64_t team, uint64_t enemy, uint64_t bitboard[]) {
     uint64_t p = position;
     int sq = get_lsb_idx(p);
     uint64_t occupancy = team | enemy;
     
-    uint64_t bishopOcc = occupancy & bishop_masks[sq];
-    bishopOcc *= bishop_magic[sq];
-    bishopOcc >>= 64 - bishop_bit_counts[sq];
-    uint64_t bishop_attacks = bishop_moves[sq][bishopOcc];
+    uint64_t bishop_occ = occupancy & bishop_masks[sq];
+    bishop_occ *= bishop_magic[sq];
+    bishop_occ >>= 64 - bishop_bit_counts[sq];
+    uint64_t bishop_attacks = bishop_moves[sq][bishop_occ];
     
-    uint64_t rookOcc = occupancy & rook_masks[sq];
-    rookOcc *= rook_magic[sq];
-    rookOcc >>= 64 - rook_bit_counts[sq];
-    uint64_t rook_attacks = rook_moves[sq][rookOcc];
+    uint64_t rook_occ = occupancy & rook_masks[sq];
+    rook_occ *= rook_magic[sq];
+    rook_occ >>= 64 - rook_bit_counts[sq];
+    uint64_t rook_attacks = rook_moves[sq][rook_occ];
 
     uint64_t knight_attacks = knight_moves[sq];
-
     uint64_t pawn_attacks = black_pawn_captures[sq];
-
     uint64_t king_attacks = king_moves[sq];
     
     if (bitboard[1] & pawn_attacks) return 0;
@@ -57,11 +55,3 @@ char BlackKing::get_symbol() const {
 int BlackKing::get_value() const {
     return 0;
 }
-
-bool BlackKing::getHasMoved() const {
-    return hasMoved;
-}
-
-void BlackKing::setHasMoved(bool moved) {
-    hasMoved = moved;
-} 

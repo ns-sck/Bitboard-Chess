@@ -1,11 +1,11 @@
-#include "WhiteBishop.h"
+#include "Bishop.h"
 #include "BitUtil.h"
 using namespace std;
 
-WhiteBishop::WhiteBishop(uint64_t position) 
+  Bishop::  Bishop(uint64_t position) 
     : Piece(position, true) {}
 
-std::vector<Move> WhiteBishop::generate_moves(uint64_t position, uint64_t team, uint64_t enemy) {
+std::vector<Move>   Bishop::generate_moves(uint64_t position, uint64_t team, uint64_t enemy) {
     std::vector<Move> moves;
     uint64_t p = position;
     while (p) {
@@ -22,10 +22,10 @@ std::vector<Move> WhiteBishop::generate_moves(uint64_t position, uint64_t team, 
     return moves;
 }
 
-char WhiteBishop::get_symbol() const {
+char   Bishop::get_symbol() const {
     return 'B';
 }
 
-int WhiteBishop::get_value() const {
+int   Bishop::get_value() const {
     return 3;
 } 
