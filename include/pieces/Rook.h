@@ -1,21 +1,11 @@
-#ifndef ROOK_H
-#define ROOK_H
-
+#pragma once
 #include "Piece.h"
 
-class Rook : public Piece {
-private:
-    bool has_moved;
+namespace Rook {
+    
+    std::vector<Move> generate_moves(uint64_t position, uint64_t team, uint64_t enemy, bool color);
 
-public:
-    Rook(uint64_t position);
-    
-    std::vector<Move> generate_moves(uint64_t position, uint64_t team, uint64_t enemy);
-    char get_symbol() const override;
-    int get_value() const override;
-    
-    bool getHasMoved() const;
-    void setHasMoved(bool moved);
+    char get_symbol();
+
+    int get_value();
 };
-
-#endif

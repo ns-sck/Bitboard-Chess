@@ -4,10 +4,8 @@
 #include "Knight.h"
 #include "Rook.h"
 #include "Bishop.h"
-#include "WhiteKing.h"
-#include "BlackKing.h"
-#include "WhitePawn.h"
-#include "BlackPawn.h"
+#include "King.h"
+#include "Pawn.h"
 #include <iostream>
 
 Game::Game() {
@@ -38,19 +36,6 @@ void Game::reset_board() {
                 bitboard[BB] | bitboard[BR] | 
                 bitboard[BQ] | bitboard[BK];
     
-    pieces[WP] = new WhitePawn(bitboard[WP]);
-    pieces[WN] = new Knight(bitboard[WN]);
-    pieces[WB] = new Bishop(bitboard[WB]);
-    pieces[WR] = new Rook(bitboard[WR]);
-    pieces[WQ] = new Queen(bitboard[WQ]);
-    pieces[WK] = new WhiteKing(bitboard[WK]);
-    pieces[BP] = new BlackPawn(bitboard[BP]);
-    pieces[BN] = new Knight(bitboard[BN]);
-    pieces[BB] = new Bishop(bitboard[BB]);
-    pieces[BR] = new Rook(bitboard[BR]);
-    pieces[BQ] = new Queen(bitboard[BQ]);
-    pieces[BK] = new BlackKing(bitboard[BK]);
-
     for (int i = 16; i < 48; ++i) {
         types[i] = 0;
     }
@@ -76,7 +61,6 @@ void Game::reset_board() {
 bool Game::is_game_over() const {
     return game_state != GameState::ACTIVE && game_state != GameState::CHECK;
 }
-
 GameState Game::get_state() const {
     return game_state;
 }
@@ -120,58 +104,15 @@ void Game::print_board() const {
     std::cout << "Turn: " << (white_to_move ? "White" : "Black") << std::endl;
 }
 
-Move Game::parse_move_string(std::string move_str) {
-    int from_file = move_str[0] - 'a';
-    int from_rank = move_str[1] - '1';
-    int from = from_rank * 8 + from_file;
-
-    int to_file = move_str[2] - 'a';
-    int to_rank = move_str[3] - '1';
-    int to = to_rank * 8 + to_file;
-
-    uint64_t info = 0;
-    embed(info, 7, 12, from);
-    embed(info, 13, 18, to);
-
-    return Move(static_cast<uint64_t>(info));
-}
-
-void Game::generate_castlings(std::vector<Move>& moves) {
-    uint64_t occ = white_occ | black_occ;
-    if (white_to_move) {
-        WhiteKing* wk = static_cast<WhiteKing*>(pieces[WK]);
-        if (!get_mask(state, 0, 0) &&
-            !(occ & 96) &&
-            wk->is_king_safe(1ull << e1, white_occ, black_occ, bitboard) &&
-            wk->is_king_safe(1ull << f1, white_occ, black_occ, bitboard) &&
-            wk->is_king_safe(1ull << g1, white_occ, black_occ, bitboard)) {
-                moves.push_back((e1 | (g1 << 6)) << 7);
-            }
-        if (!get_mask(state, 1, 1) &&
-            !(occ & 14) &&
-            wk->is_king_safe(1ull << e1, white_occ, black_occ, bitboard) &&
-            wk->is_king_safe(1ull << d1, white_occ, black_occ, bitboard) &&
-            wk->is_king_safe(1ull << c1, white_occ, black_occ, bitboard)) {
-                moves.push_back((e1 | (c1 << 6)) << 7);
-            }
-    } else {
-        BlackKing* bk = static_cast<BlackKing*>(pieces[BK]);
-        if (!get_mask(state, 2, 2) &&
-            !(occ & (3ull << 61)) &&
-            bk->is_king_safe(1ull << e8, black_occ, white_occ, bitboard) &&
-            bk->is_king_safe(1ull << f8, black_occ, white_occ, bitboard) &&
-            bk->is_king_safe(1ull << g8, black_occ, white_occ, bitboard)) {
-                moves.push_back((e8 | (g8 << 6)) << 7);
-            }
-        if (!get_mask(state, 3, 3) &&
-            !(occ & (7ull << 57)) &&
-            bk->is_king_safe(1ull << e8, black_occ, white_occ, bitboard) &&
-            bk->is_king_safe(1ull << d8, black_occ, white_occ, bitboard) &&
-            bk->is_king_safe(1ull << c8, black_occ, white_occ, bitboard)) {
-                moves.push_back((e8 | (c8 << 6)) << 7);
-            }
-    }
-}
+const move_gen_func move_generators[7] = {
+    nullptr,
+    Pawn::generate_moves,
+    Knight::generate_moves,
+    Bishop::generate_moves,
+    Rook::generate_moves,
+    Queen::generate_moves,
+    King::generate_moves
+};
 
 std::vector<Move> Game::generate_legal_moves() {
     std::vector<Move> moves;
@@ -186,146 +127,163 @@ std::vector<Move> Game::generate_legal_moves() {
         if (!white_to_move) {
             j += 6;
         }
-        for (auto& m : pieces[j]->generate_moves(bitboard[j], team, enemy | (i == 1 ? en_passant : 0))) {
+        std::vector<Move> pseudo_moves = move_generators[i](bitboard[j], team, enemy | (i == 1 ? en_passant : 0), !white_to_move);
+        for (auto& m : pseudo_moves) {
             if (check_move(m)) {
                 moves.push_back(m);
             }
         }
     }
-    generate_castlings(moves);
+    if (white_to_move) generate_castlings<true>(moves);
+    else generate_castlings<false>(moves);
     return moves;
+}
+
+template <bool W>
+void Game::generate_castlings(std::vector<Move>& moves) {
+    uint64_t occ = white_occ | black_occ;
+
+    bool ks_mask = occ & (3ull << (W ? 5 : 61));
+    bool qs_mask = occ & (7ull << (W ? 1 : 57));
+
+    uint64_t team = W ? white_occ : black_occ;
+    uint64_t enemy = W ? black_occ : white_occ;
+
+    constexpr int c = W ? c1 : c8;
+    constexpr int d = W ? d1 : d8;
+    constexpr int e = W ? e1 : e8;
+    constexpr int f = W ? f1 : f8;
+    constexpr int g = W ? g1 : g8;
+
+    constexpr int ks_bit = W ? 0 : 2;
+    constexpr int qs_bit = W ? 1 : 3;
+
+    if (!get_mask(state, ks_bit, ks_bit) &&
+        !ks_mask &&
+        King::is_safe(1ull << e, team, enemy, bitboard, !W) &&
+        King::is_safe(1ull << f, team, enemy, bitboard, !W) &&
+        King::is_safe(1ull << g, team, enemy, bitboard, !W)) {
+            moves.push_back((e | (g << 6)) << 7);
+        }
+    if (!get_mask(state, qs_bit, qs_bit) &&
+            !qs_mask &&
+            King::is_safe(1ull << e, team, enemy, bitboard, !W) &&
+            King::is_safe(1ull << d, team, enemy, bitboard, !W) &&
+            King::is_safe(1ull << c, team, enemy, bitboard, !W)) {
+                moves.push_back((e | (c << 6)) << 7);
+            }
 }
 
 void Game::handle_en_passant(int from, int to, uint64_t& info) {
     int en_passant_square = get_mask(state, 10, 15);
-    if (white_to_move) {
-        if (((1ull << to) & bitboard[WP]) && to == from + 16) {
-            embed(new_state, 10, 15, from + 8);
-        } 
-        if (to == en_passant_square) {
-            bitboard[BP] &= ~(1ull << (en_passant_square - 8));
-            types[en_passant_square - 8] = 0;
-            embed(info, 6, 6, 1);
+
+    int OP = white_to_move ? WP : BP;
+    int EP = white_to_move ? BP : WP;
+    int offset = white_to_move ? 8 : -8;
+
+    if ((1ull << to) & bitboard[OP]) {
+        if (to == from + offset * 2) {
+            embed(new_state, 10, 15, from + offset);
         }
-    } else {
-        if (((1ull << to) & bitboard[BP]) && to == from - 16) {
-            embed(new_state, 10, 15, from - 8);
-        } 
         if (to == en_passant_square) {
-            bitboard[WP] &= ~(1ull << (en_passant_square + 8));
-            types[en_passant_square + 8] = 0;
+            bitboard[EP] &= ~(1ull << (en_passant_square - offset));
+            types[en_passant_square - offset] = EMPTY;
             embed(info, 6, 6, 1);
         }
     }
 }
 
-void Game::handle_castling(int from, int to, int src, uint64_t& info) {
-    if (white_to_move) {
-        if (src == WK) {
-            if (from == e1 && to == g1) {
-                bitboard[WR] &= ~(1ull << h1);
-                bitboard[WR] |= 1ull << f1;
-                types[h1] = EMPTY;
-                types[f1] = WR;
-                embed(info, 27, 27, 1);
-            } else if (from == e1 && to == c1) {
-                bitboard[WR] &= ~(1ull << a1);
-                bitboard[WR] |= 1ull << d1;
-                types[a1] = EMPTY;
-                types[d1] = WR;
-                embed(info, 28, 28, 1);
-            }
-            embed(new_state, 0, 1, 3);
-        } else if (src == WR && from == h1) {
-            embed(new_state, 0, 0, 1);
-        } else if (src == WR && from == a1) {
-            embed(new_state, 1, 1, 1);
-        }
-    } else {
-        if (src == BK) {
-            if (from == e8 && to == g8) {
-                bitboard[BR] &= ~(1ull << h8);
-                bitboard[BR] |= 1ull << f8;
-                types[h8] = EMPTY;
-                types[f8] = BR;
-                embed(info, 27, 27, 1);
-            } else if (from == e8 && to == c8) {
-                bitboard[BR] &= ~(1ull << a8);
-                bitboard[BR] |= 1ull << d8;
-                types[a8] = EMPTY;
-                types[d8] = BR;
-                embed(info, 28, 28, 1);
-            }
-            embed(new_state, 2, 3, 3);
-        } else if (src == BR && from == h8) {
-            embed(new_state, 2, 2, 1);
-        } else if (src == BR && from == a8) {
-            embed(new_state, 3, 3, 1);
-        }
-    }
-}
-
-bool Game::unmake_move() {
-    Info info = move_stack.back().get_info();
-    
-    int from = get_mask(info, 7, 12);
-    int to = get_mask(info, 13, 18);
-    int src = get_mask(info, 19, 22);
-    int dst = get_mask(info, 23, 26);
-
-    bitboard[src] &= ~(1ull << to);
-    bitboard[src] |= (1ull << from);
+void Game::unmake_en_passant(uint64_t& info, int to) {
     bool white_to_unmake = !white_to_move;
 
-    // unmake en passant
+    int EP = white_to_unmake ? BP : WP;
+    int offset = white_to_unmake ? 8 : -8;
+
     if (get_mask(info, 6, 6)) {
-        if (white_to_unmake) {
-            bitboard[BP] |= 1ull << (to - 8);
-            types[to - 8] = BP;
-        } else {
-            bitboard[WP] |= 1ull << (to + 8);
-            types[to + 8] = WP;
-        }
+        bitboard[EP] |= 1ull << (to - offset);
+        types[to - offset] = EP;
     } 
-    
-    // unmake capture
-    if (get_mask(info, 5, 5)) {
-        bitboard[dst] |= (1ull << to);
-    }
-
-    // unmake castling
-    if (white_to_unmake) {
-        if (get_mask(info, 27, 27)) {
-            bitboard[WR] |= 1ull << h1;
-            bitboard[WR] &= ~(1ull << f1);
-        } else if (get_mask(info, 28, 28)) {
-            bitboard[WR] |= 1ull << a1;
-            bitboard[WR] &= ~(1ull << d1);
-        }
-    } else {
-        if (get_mask(info, 27, 27)) {
-            bitboard[BR] |= 1ull << h8;
-            bitboard[BR] &= ~(1ull << f8);
-        } else if (get_mask(info, 28, 28)) {
-            bitboard[BR] |= 1ull << a8;
-            bitboard[BR] &= ~(1ull << d8);
-        }
-    }
-
-    types[from] = src;
-    types[to] = dst;
-
-    move_stack.pop_back();
-    state_stack.pop_back();
-    state = state_stack.back();
-
-    white_occ = bitboard[WP] | bitboard[WN] | bitboard[WB] | bitboard[WR] | bitboard[WQ] | bitboard[WK];
-    black_occ = bitboard[BP] | bitboard[BN] | bitboard[BB] | bitboard[BR] | bitboard[BQ] | bitboard[BK];
-
-    white_to_move ^= 1;
 }
 
-bool Game::make_move(Move& move) {
+void Game::handle_castling(uint64_t& info, int from, int to, int src) {
+    int K = white_to_move ? WK : BK;
+    int R = white_to_move ? WR : BR;
+
+    if (src ^ K && src ^ R) return;
+
+    int a = white_to_move ? a1 : a8;
+    int c = white_to_move ? c1 : c8;
+    int d = white_to_move ? d1 : d8;
+    int e = white_to_move ? e1 : e8;
+    int f = white_to_move ? f1 : f8;
+    int g = white_to_move ? g1 : g8;
+    int h = white_to_move ? h1 : h8;
+
+    int ks_bit = white_to_move ? 0 : 2;
+    int qs_bit = white_to_move ? 1 : 3;
+    
+    if (src == K) {
+        if (from == e && to == g) {
+            bitboard[R] &= ~(1ull << h);   
+            bitboard[R] |= (1ull << f);
+            types[h] = EMPTY;
+            types[f] = R;
+            embed(info, 27, 27, 1); 
+        } else if (from == e && to == c) {
+            bitboard[R] &= ~(1ull << a);
+            bitboard[R] |= 1ull << d;
+            types[a] = EMPTY;
+            types[d] = R;
+            embed(info, 28, 28, 1);
+        }
+        embed(new_state, ks_bit, qs_bit, 3);
+    } else if (src == R && from == h) {
+        embed(new_state, ks_bit, ks_bit, 1);
+    } else if (src == R && from == a) {
+        embed(new_state, qs_bit, qs_bit, 1);
+    }
+}
+
+void Game::unmake_castling(uint64_t& info) {
+    bool white_to_unmake = !white_to_move;
+
+    int R = white_to_unmake ? WR : BR;
+    int a = white_to_unmake ? a1 : a8;
+    int d = white_to_unmake ? d1 : d8;
+    int f = white_to_unmake ? f1 : f8;
+    int h = white_to_unmake ? h1 : h8;
+
+    if (get_mask(info, 27, 27)) {
+        bitboard[R] |= 1ull << h;
+        bitboard[R] &= ~(1ull << f);
+        types[f] = EMPTY;
+        types[h] = R;
+    } else if (get_mask(info, 28, 28)) {
+        bitboard[R] |= 1ull << a;
+        bitboard[R] &= ~(1ull << d);
+        types[d] = EMPTY;
+        types[a] = R; 
+    }
+}
+
+void Game::handle_promotion(uint64_t& info, int to) {
+    int piece = get_mask(info, 0, 3);
+    if (piece) {
+        int P = white_to_move ? WP : BP;
+        bitboard[P] &= ~(1ull << to);
+        bitboard[piece] |= (1ull << to);
+        types[to] = piece;
+    }
+}
+
+void Game::unmake_promotion(uint64_t& info, int to) {
+    int piece = get_mask(info, 0, 3);
+    if (piece) {
+        bitboard[piece] &= ~(1ull << to);
+    }
+}
+
+void Game::make_move(Move& move) {
     uint64_t info = move.get_info();
     int from = get_mask(info, 7, 12);
     int to = get_mask(info, 13, 18);
@@ -346,8 +304,9 @@ bool Game::make_move(Move& move) {
     types[to] = src;
     types[from] = EMPTY;
     
-    handle_castling(from, to, src, info);
+    handle_castling(info, from, to, src);
     handle_en_passant(from, to, info);
+    handle_promotion(info, to);
     
     move.set_info(info);
     move_stack.push_back(move);
@@ -357,8 +316,38 @@ bool Game::make_move(Move& move) {
     white_to_move ^= 1;
     white_occ = bitboard[WP] | bitboard[WN] | bitboard[WB] | bitboard[WR] | bitboard[WQ] | bitboard[WK];
     black_occ = bitboard[BP] | bitboard[BN] | bitboard[BB] | bitboard[BR] | bitboard[BQ] | bitboard[BK];
+}
 
-    return true;
+void Game::unmake_move() {
+    Info info = move_stack.back().get_info();
+    
+    int from = get_mask(info, 7, 12);
+    int to = get_mask(info, 13, 18);
+    int src = get_mask(info, 19, 22);
+    int dst = get_mask(info, 23, 26);
+
+    bitboard[src] &= ~(1ull << to);
+    bitboard[src] |= (1ull << from);
+
+    types[from] = src;
+    types[to] = dst;
+    
+    if (get_mask(info, 5, 5)) {
+        bitboard[dst] |= (1ull << to);
+    }
+    
+    unmake_en_passant(info, to);
+    unmake_castling(info);
+    unmake_promotion(info, to);
+
+    move_stack.pop_back();
+    state_stack.pop_back();
+    state = state_stack.back();
+
+    white_occ = bitboard[WP] | bitboard[WN] | bitboard[WB] | bitboard[WR] | bitboard[WQ] | bitboard[WK];
+    black_occ = bitboard[BP] | bitboard[BN] | bitboard[BB] | bitboard[BR] | bitboard[BQ] | bitboard[BK];
+
+    white_to_move ^= 1;
 }
 
 bool Game::check_move(Move& move) {
@@ -367,11 +356,9 @@ bool Game::check_move(Move& move) {
     
     bool safe = 1;
     if (white) {
-        safe = static_cast<WhiteKing*>(pieces[WK])->is_king_safe(
-            bitboard[WK], white_occ, black_occ, bitboard);
+        safe = King::is_safe(bitboard[WK], white_occ, black_occ, bitboard, 0);
     } else {
-        safe = static_cast<BlackKing*>(pieces[BK])->is_king_safe(
-            bitboard[BK], black_occ, white_occ, bitboard);
+        safe = King::is_safe(bitboard[BK], black_occ, white_occ, bitboard, 1);
     }
     unmake_move();
     return safe; 

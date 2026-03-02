@@ -3,13 +3,13 @@
 
 #include "Piece.h"
 
-class Bishop : public Piece {
-public:
-    Bishop(uint64_t position);
-    
-    std::vector<Move> generate_moves(uint64_t position, uint64_t team, uint64_t enemy);
-    char get_symbol() const override;
-    int get_value() const override;
+namespace Bishop {
+
+    std::vector<Move> generate_moves(uint64_t position, uint64_t team, uint64_t enemy, bool color);
+
+    char get_symbol();
+
+    int get_value();
 };
 
 #endif

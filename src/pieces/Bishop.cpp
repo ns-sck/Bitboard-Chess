@@ -1,11 +1,7 @@
 #include "Bishop.h"
 #include "BitUtil.h"
-using namespace std;
 
-  Bishop::  Bishop(uint64_t position) 
-    : Piece(position, true) {}
-
-std::vector<Move>   Bishop::generate_moves(uint64_t position, uint64_t team, uint64_t enemy) {
+std::vector<Move> Bishop::generate_moves(uint64_t position, uint64_t team, uint64_t enemy, bool color) {
     std::vector<Move> moves;
     uint64_t p = position;
     while (p) {
@@ -17,15 +13,15 @@ std::vector<Move>   Bishop::generate_moves(uint64_t position, uint64_t team, uin
         occupancy >>= 64 - bishop_bit_counts[sq];
         occupancy = bishop_moves[sq][occupancy];
         occupancy &= ~team;
-        this->add_moves(moves, sq, occupancy, enemy);
+        add_moves(moves, sq, occupancy, enemy);
     }
     return moves;
 }
 
-char   Bishop::get_symbol() const {
+char Bishop::get_symbol() {
     return 'B';
 }
 
-int   Bishop::get_value() const {
+int Bishop::get_value() {
     return 3;
 } 

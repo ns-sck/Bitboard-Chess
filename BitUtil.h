@@ -49,10 +49,8 @@ inline int get_mask(uint64_t x, int l, int r) {
 
 extern uint64_t knight_moves[64];
 extern uint64_t king_moves[64];
-extern uint64_t white_pawn_moves[64];
-extern uint64_t white_pawn_captures[64];
-extern uint64_t black_pawn_moves[64];
-extern uint64_t black_pawn_captures[64];
+extern uint64_t pawn_moves[2][64];
+extern uint64_t pawn_captures[2][64];
 
 extern const uint64_t rook_magic[64];
 extern const uint64_t bishop_magic[64];

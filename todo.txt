@@ -1,3 +1,4 @@
 promote
 move counter
 3 move-rule
+static piece classes to reduce dereference overhead

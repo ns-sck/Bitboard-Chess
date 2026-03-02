@@ -25,26 +25,32 @@ int main() {
         for (auto move : legal_moves) {
             int from = get_mask(move.get_info(), 7, 12);
             int to = get_mask(move.get_info(), 13, 18);
-            cout << square_to_algebraic[from] << ' ' << square_to_algebraic[to] << " | ";
-            string s = square_to_algebraic[from] + square_to_algebraic[to];
+            int promote = get_mask(move.get_info(), 0, 3);
+            if (promote > 6) promote -= 6;
+            string pcs[6] = {"", "", "N", "B", "R", "Q"}; 
+            cout << square_to_algebraic[from]  << square_to_algebraic[to] << pcs[promote];
+            cout << " | ";
+            string s = square_to_algebraic[from] + square_to_algebraic[to] + pcs[promote];
             mp.insert({s, move});
         }
         cout << endl;
         cin >> move_str;
-   
-        if (move_str == "quit") {
-            break;
-        }
 
+        
         try {
-            if (mp.count(move_str)) {
-                Move mv = game.parse_move_string(move_str);
+            auto it = mp.find(move_str);
+            if (it != mp.end()) {
+                Move mv = it->second;
                 game.make_move(mv);
             } else {
                 cout << "Illegal move. Try again." << endl;
             }
         } catch (const exception& e) {
             cout << "Error: " << e.what() << endl;
+        }
+
+        if (move_str == "reset") {
+            game.reset_board();
         }
     }
     

@@ -15,7 +15,7 @@ The engine is structured around the following key components:
 
 ### Core Classes
 - `Piece`: Abstract base class for all chess pieces
-  - Derived classes: `Queen`, `Knight`, `Rook`, `Bishop`, `King`, `WhitePawn`, `BlackPawn`
+  - Derived classes: `Queen`, `Knight`, `Rook`, `Bishop`, `King`, `Pawn`, `BlackPawn`
 - `BitUtil`: Utility functions for bitboard operations
 - `Move`: Representation of chess moves
 - `Game`: Game state management

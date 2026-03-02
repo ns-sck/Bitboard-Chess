@@ -1,11 +1,7 @@
 #include "Queen.h"
 #include "BitUtil.h"
-using namespace std;
 
-Queen::Queen(uint64_t position) 
-    : Piece(position, true) {}
-
-std::vector<Move> Queen::generate_moves(uint64_t position, uint64_t team, uint64_t enemy) {
+std::vector<Move> Queen::generate_moves(uint64_t position, uint64_t team, uint64_t enemy, bool color) {
     std::vector<Move> moves;
     uint64_t p = position;
     while (p) {
@@ -24,15 +20,15 @@ std::vector<Move> Queen::generate_moves(uint64_t position, uint64_t team, uint64
         uint64_t rook_attacks = rook_moves[sq][rook_occ];
         
         uint64_t attacks = (bishop_attacks | rook_attacks) & ~team;
-        this->add_moves(moves, sq, attacks, enemy);
+        add_moves(moves, sq, attacks, enemy);
     }
     return moves;
 }
 
-char Queen::get_symbol() const {
+char Queen::get_symbol()  {
     return 'Q';
 }
 
-int Queen::get_value() const {
+int Queen::get_value()  {
     return 9;
 } 

@@ -219,10 +219,8 @@ uint64_t rook_masks[64];
 uint64_t bishop_masks[64];
 uint64_t knight_moves[64];
 uint64_t king_moves[64];
-uint64_t white_pawn_moves[64];
-uint64_t white_pawn_captures[64];
-uint64_t black_pawn_moves[64];
-uint64_t black_pawn_captures[64];
+uint64_t pawn_moves[2][64];
+uint64_t pawn_captures[2][64];
 
 void init() {
     init_king_moves();
@@ -245,28 +243,28 @@ void init_knight_moves() {
 }
 
 void init_pawn_moves() {
-    for (int i = 8; i < 56; ++i) {
-        white_pawn_moves[i] |= 1ull << (i + 8);
+    for (int i = 0; i < 56; ++i) {
+        pawn_moves[0][i] |= 1ull << (i + 8);
         if (i < 16) {
-            white_pawn_moves[i] |= 1ull << (i + 16);
+            pawn_moves[0][i] |= 1ull << (i + 16);
         }
         if (i % 8 != 0) {
-            white_pawn_captures[i] |= 1ull << (i + 7);
+            pawn_captures[0][i] |= 1ull << (i + 7);
         }
         if (i % 8 != 7) {
-            white_pawn_captures[i] |= 1ull << (i + 9);
+            pawn_captures[0][i] |= 1ull << (i + 9);
         }
     }
-    for (int i = 8; i < 56; ++i) {
-        black_pawn_moves[i] |= 1ull << (i - 8);
+    for (int i = 8; i < 64; ++i) {
+        pawn_moves[1][i] |= 1ull << (i - 8);
         if (i >= 48) {
-            black_pawn_moves[i] |= 1ull << (i - 16);
+            pawn_moves[1][i] |= 1ull << (i - 16);
         }
         if (i % 8 != 0) {
-            black_pawn_captures[i] |= 1ull << (i - 9);
+            pawn_captures[1][i] |= 1ull << (i - 9);
         }
         if (i % 8 != 7) {
-            black_pawn_captures[i] |= 1ull << (i - 7);
+            pawn_captures[1][i] |= 1ull << (i - 7);
         }
     }
 }
